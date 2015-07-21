@@ -15,6 +15,7 @@ import com.rmathur.food.models.Leg;
 import com.rmathur.food.models.Route;
 import com.rmathur.food.models.Route_;
 import com.rmathur.food.models.Step;
+import com.rmathur.food.models.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,27 +74,25 @@ public class MainActivityFragment extends Fragment {
                                     Location endLoc = new Location("");
                                     endLoc.setLatitude(currStep.getEndLocation().getLat());
                                     endLoc.setLongitude(currStep.getEndLocation().getLng());
-                                    locationList.add(endLoc);
 
                                     if(currStep.getDistance().getValue() > distance) {
-                                        double xLen = endLoc.getLatitude() - startLoc.getLatitude();
-                                        double yLen = endLoc.getLongitude() - startLoc.getLongitude();
-                                        double hLen = Math.sqrt(Math.pow(xLen, 2) + Math.pow(yLen, 2));
-                                        double ratio = distance / (hLen * DEGREES_TO_METERS);
-                                        double smallerXLen = xLen * ratio;
-                                        double smallerYLen = yLen * ratio;
-                                        int numTimes = (int) ((hLen * DEGREES_TO_METERS) / distance);
+                                        Vector step = new Vector(Math.abs(startLoc.getLatitude() - endLoc.getLatitude()), Math.abs(startLoc.getLongitude() - endLoc.getLongitude()));
+                                        Vector unitVector = new Vector((step.xComponent / step.getDistance()), (step.yComponent / step.getDistance()));
 
-                                        for (int i = 0; i < numTimes; i++) {
-                                            double smallerX = startLoc.getLatitude() + smallerXLen;
-                                            double smallerY = startLoc.getLongitude() + smallerYLen;
-
+                                        double distanceRemaining = currStep.getDistance().getValue();
+                                        Location currLoc = startLoc;
+                                        while (distanceRemaining > 0) {
                                             Location newLoc = new Location("");
-                                            newLoc.setLatitude(smallerX);
-                                            newLoc.setLongitude(smallerY);
+                                            newLoc.setLatitude(currLoc.getLatitude() + ((distance / 111319.458) * unitVector.xComponent));
+                                            newLoc.setLongitude(currLoc.getLongitude() + ((distance / 111319.458) * unitVector.yComponent));
                                             locationList.add(newLoc);
+
+                                            currLoc = newLoc;
+                                            distanceRemaining = distanceRemaining - distance;
                                         }
                                     }
+
+                                    locationList.add(endLoc);
 
                                     for (Location loc : locationList) {
                                         Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
