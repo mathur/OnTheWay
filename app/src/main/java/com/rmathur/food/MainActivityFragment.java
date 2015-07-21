@@ -31,7 +31,7 @@ public class MainActivityFragment extends Fragment {
     Button btnGo;
 
     public static final String BASE_URL = "https://maps.googleapis.com";
-    public final long DEGREES_TO_METERS = 111000;
+    public final long DEGREES_TO_METERS = 111319;
 
     public MainActivityFragment() {
     }
@@ -58,48 +58,10 @@ public class MainActivityFragment extends Fragment {
 
                 RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_URL).build();
                 GoogleDirectionsAPI apiService = restAdapter.create(GoogleDirectionsAPI.class);
-                apiService.getDirections("AIzaSyB5oRSjf_z5XjxLX-Yp8mxEchS6sP4txcs", from, to, new Callback<Route>(){
+                apiService.getDirections(getString(R.string.googleApiKey), from, to, new Callback<Route>(){
                     @Override
                     public void success(Route route, Response response) {
-                        List<Location> locationList = new ArrayList<Location>();
-
-                        for (Route_ currRoute : route.getRoutes()) {
-                            for (Leg currLeg : currRoute.getLegs()) {
-                                for (Step currStep : currLeg.getSteps()) {
-                                    Location startLoc = new Location("");
-                                    startLoc.setLatitude(currStep.getStartLocation().getLat());
-                                    startLoc.setLongitude(currStep.getStartLocation().getLng());
-                                    locationList.add(startLoc);
-
-                                    Location endLoc = new Location("");
-                                    endLoc.setLatitude(currStep.getEndLocation().getLat());
-                                    endLoc.setLongitude(currStep.getEndLocation().getLng());
-
-                                    if(currStep.getDistance().getValue() > distance) {
-                                        Vector step = new Vector(Math.abs(startLoc.getLatitude() - endLoc.getLatitude()), Math.abs(startLoc.getLongitude() - endLoc.getLongitude()));
-                                        Vector unitVector = new Vector((step.xComponent / step.getDistance()), (step.yComponent / step.getDistance()));
-
-                                        double distanceRemaining = currStep.getDistance().getValue();
-                                        Location currLoc = startLoc;
-                                        while (distanceRemaining > 0) {
-                                            Location newLoc = new Location("");
-                                            newLoc.setLatitude(currLoc.getLatitude() + ((distance / 111319.458) * unitVector.xComponent));
-                                            newLoc.setLongitude(currLoc.getLongitude() + ((distance / 111319.458) * unitVector.yComponent));
-                                            locationList.add(newLoc);
-
-                                            currLoc = newLoc;
-                                            distanceRemaining = distanceRemaining - distance;
-                                        }
-                                    }
-
-                                    locationList.add(endLoc);
-
-                                    for (Location loc : locationList) {
-                                        Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
-                                    }
-                                }
-                            }
-                        }
+                        calculatePoints(route, distance);
                     }
 
                     @Override
@@ -110,5 +72,49 @@ public class MainActivityFragment extends Fragment {
             }
         });
         return view;
+    }
+
+    public List<Location> calculatePoints(Route route, double distance) {
+        List<Location> locationList = new ArrayList<Location>();
+
+        for (Route_ currRoute : route.getRoutes()) {
+            for (Leg currLeg : currRoute.getLegs()) {
+                for (Step currStep : currLeg.getSteps()) {
+                    Location startLoc = new Location("");
+                    startLoc.setLatitude(currStep.getStartLocation().getLat());
+                    startLoc.setLongitude(currStep.getStartLocation().getLng());
+                    locationList.add(startLoc);
+
+                    Location endLoc = new Location("");
+                    endLoc.setLatitude(currStep.getEndLocation().getLat());
+                    endLoc.setLongitude(currStep.getEndLocation().getLng());
+
+                    if(currStep.getDistance().getValue() > distance) {
+                        Vector step = new Vector(Math.abs(startLoc.getLatitude() - endLoc.getLatitude()), Math.abs(startLoc.getLongitude() - endLoc.getLongitude()));
+                        Vector unitVector = new Vector((step.xComponent / step.getDistance()), (step.yComponent / step.getDistance()));
+
+                        double distanceRemaining = currStep.getDistance().getValue();
+                        Location currLoc = startLoc;
+                        while (distanceRemaining > 0) {
+                            Location newLoc = new Location("");
+                            newLoc.setLatitude(currLoc.getLatitude() + ((distance / DEGREES_TO_METERS) * unitVector.xComponent));
+                            newLoc.setLongitude(currLoc.getLongitude() + ((distance / DEGREES_TO_METERS) * unitVector.yComponent));
+                            locationList.add(newLoc);
+
+                            currLoc = newLoc;
+                            distanceRemaining = distanceRemaining - distance;
+                        }
+                    }
+
+                    locationList.add(endLoc);
+
+                    for (Location loc : locationList) {
+                        Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
+                    }
+                }
+            }
+        }
+
+        return locationList;
     }
 }
