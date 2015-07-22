@@ -10,27 +10,34 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.rmathur.food.api.FoursquareAPI;
 import com.rmathur.food.api.GoogleDirectionsAPI;
+import com.rmathur.food.models.Foursquare;
 import com.rmathur.food.models.Leg;
 import com.rmathur.food.models.Route;
 import com.rmathur.food.models.Route_;
 import com.rmathur.food.models.Step;
 import com.rmathur.food.models.Vector;
+import com.rmathur.food.models.Venue;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.mime.TypedByteArray;
 
 public class MainActivityFragment extends Fragment {
 
     EditText edtQuery, edtFrom, edtTo, edtDistance;
     Button btnGo;
 
-    public static final String BASE_URL = "https://maps.googleapis.com";
+    public static final String BASE_GOOGLE_URL = "https://maps.googleapis.com";
+    public static final String BASE_FOURSQUARE_URL = "https://api.foursquare.com";
     public final long DEGREES_TO_METERS = 111319;
 
     public MainActivityFragment() {
@@ -51,24 +58,24 @@ public class MainActivityFragment extends Fragment {
         btnGo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String query = edtQuery.getText().toString();
-                String from = edtFrom.getText().toString();
-                String to = edtTo.getText().toString();
+                final String query = edtQuery.getText().toString();
+                final String from = edtFrom.getText().toString();
+                final String to = edtTo.getText().toString();
                 final double distance = Double.parseDouble(edtDistance.getText().toString());
 
-                RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_URL).build();
+                RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_GOOGLE_URL).build();
                 GoogleDirectionsAPI apiService = restAdapter.create(GoogleDirectionsAPI.class);
                 apiService.getDirections(getString(R.string.googleApiKey), from, to, new Callback<Route>(){
                     @Override
                     public void success(Route route, Response response) {
                         for (Location loc : calculatePoints(route, distance)) {
-
+                            getPlaceList(loc, query);
                         }
                     }
 
                     @Override
                     public void failure(RetrofitError retrofitError) {
-                        Log.e("fuck", "it errored");
+                        Log.e("Google Maps API Error", retrofitError.getMessage());
                     }
                 });
             }
@@ -118,5 +125,27 @@ public class MainActivityFragment extends Fragment {
         }
 
         return locationList;
+    }
+
+    public void getPlaceList(Location loc, String query) {
+        Date date = new Date();
+        String formattedDate = new SimpleDateFormat("yyyyMMdd").format(date);
+        String ll = String.valueOf(loc.getLatitude()) + "," + String.valueOf(loc.getLongitude());
+
+        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_FOURSQUARE_URL).build();
+        FoursquareAPI apiService = restAdapter.create(FoursquareAPI.class);
+        apiService.getVenues(getString(R.string.clientId), getString(R.string.clientSecret), formattedDate, ll, query, new Callback<Foursquare>(){
+            @Override
+            public void success(Foursquare foursquare, Response response) {
+                for (Venue venue : foursquare.getResponse().getVenues()) {
+                    Log.e("Location", venue.getName());
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                Log.e("Foursquare API Error", retrofitError.getMessage());
+            }
+        });
     }
 }
