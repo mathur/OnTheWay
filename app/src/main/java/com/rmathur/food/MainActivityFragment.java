@@ -61,7 +61,9 @@ public class MainActivityFragment extends Fragment {
                 apiService.getDirections(getString(R.string.googleApiKey), from, to, new Callback<Route>(){
                     @Override
                     public void success(Route route, Response response) {
-                        calculatePoints(route, distance);
+                        for (Location loc : calculatePoints(route, distance)) {
+
+                        }
                     }
 
                     @Override
@@ -108,9 +110,9 @@ public class MainActivityFragment extends Fragment {
 
                     locationList.add(endLoc);
 
-                    for (Location loc : locationList) {
-                        Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
-                    }
+//                    for (Location loc : locationList) {
+//                        Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
+//                    }
                 }
             }
         }
