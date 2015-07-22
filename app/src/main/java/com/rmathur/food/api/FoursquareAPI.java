@@ -18,6 +18,7 @@ public interface FoursquareAPI {
             @Query("v") String v,
             @Query("ll") String ll,
             @Query("query") String query,
+            @Query("radius") double radius,
             Callback<Foursquare> Foursquare
     );
 }

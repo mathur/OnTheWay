@@ -23,13 +23,13 @@ import com.rmathur.food.models.Venue;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 public class MainActivityFragment extends Fragment {
 
@@ -39,6 +39,7 @@ public class MainActivityFragment extends Fragment {
     public static final String BASE_GOOGLE_URL = "https://maps.googleapis.com";
     public static final String BASE_FOURSQUARE_URL = "https://api.foursquare.com";
     public final long DEGREES_TO_METERS = 111319;
+    public HashMap<String, Venue> venueHashMap = new HashMap<String, Venue>();
 
     public MainActivityFragment() {
     }
@@ -63,13 +64,19 @@ public class MainActivityFragment extends Fragment {
                 final String to = edtTo.getText().toString();
                 final double distance = Double.parseDouble(edtDistance.getText().toString());
 
+                venueHashMap = new HashMap<String, Venue>();
+
                 RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_GOOGLE_URL).build();
                 GoogleDirectionsAPI apiService = restAdapter.create(GoogleDirectionsAPI.class);
                 apiService.getDirections(getString(R.string.googleApiKey), from, to, new Callback<Route>(){
                     @Override
                     public void success(Route route, Response response) {
                         for (Location loc : calculatePoints(route, distance)) {
-                            getPlaceList(loc, query);
+                            getPlaceList(loc, query, distance);
+                        }
+
+                        for (String address : venueHashMap.keySet()) {
+                            Log.e("Venue", venueHashMap.get(address).getName());
                         }
                     }
 
@@ -116,10 +123,6 @@ public class MainActivityFragment extends Fragment {
                     }
 
                     locationList.add(endLoc);
-
-//                    for (Location loc : locationList) {
-//                        Log.e("Point", "Latitude: " + loc.getLatitude() + ", Longitude: " + loc.getLongitude());
-//                    }
                 }
             }
         }
@@ -127,18 +130,20 @@ public class MainActivityFragment extends Fragment {
         return locationList;
     }
 
-    public void getPlaceList(Location loc, String query) {
+    public void getPlaceList(Location loc, String query, double distance) {
         Date date = new Date();
         String formattedDate = new SimpleDateFormat("yyyyMMdd").format(date);
         String ll = String.valueOf(loc.getLatitude()) + "," + String.valueOf(loc.getLongitude());
 
         RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_FOURSQUARE_URL).build();
         FoursquareAPI apiService = restAdapter.create(FoursquareAPI.class);
-        apiService.getVenues(getString(R.string.clientId), getString(R.string.clientSecret), formattedDate, ll, query, new Callback<Foursquare>(){
+        apiService.getVenues(getString(R.string.clientId), getString(R.string.clientSecret), formattedDate, ll, query, distance, new Callback<Foursquare>(){
             @Override
             public void success(Foursquare foursquare, Response response) {
                 for (Venue venue : foursquare.getResponse().getVenues()) {
-                    Log.e("Location", venue.getName());
+                    if (venue.getLocation().getAddress() != null) {
+                        venueHashMap.put(venue.getLocation().getAddress(), venue);
+                    }
                 }
             }
 

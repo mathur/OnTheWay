@@ -23,7 +23,8 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/edtQuery" />
+            android:id="@+id/edtQuery"
+            android:text="coffee" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -37,7 +38,8 @@
             android:layout_height="wrap_content"
             android:inputType="textPostalAddress"
             android:ems="10"
-            android:id="@+id/edtFromLoc" />
+            android:id="@+id/edtFromLoc"
+            android:text="140 E 14th Street, New York, New York" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -51,7 +53,8 @@
             android:layout_height="wrap_content"
             android:inputType="textPostalAddress"
             android:ems="10"
-            android:id="@+id/edtToLoc" />
+            android:id="@+id/edtToLoc"
+            android:text="180 E 14th Street, New York, New York" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -75,7 +78,8 @@
                     android:inputType="numberDecimal"
                     android:ems="10"
                     android:id="@+id/edtDetourDist"
-                    android:layout_weight="0.93" />
+                    android:layout_weight="0.93"
+                    android:text="1000" />
 
             <TextView
                 android:layout_width="wrap_content"
