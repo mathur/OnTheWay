@@ -14,7 +14,23 @@ public class Vector {
         this.yComponent = y;
     }
 
-    public double getDistance (){
+    public double getLength (){
         return Math.sqrt(Math.pow(this.xComponent, 2) + Math.pow(this.yComponent, 2));
     }
+
+    public double dotProduct(double x, double y) {
+        return (this.xComponent * x) + (this.yComponent * y);
+    }
+
+    public void scaleVector(double scalar) {
+        this.xComponent = this.xComponent * scalar;
+        this.yComponent = this.yComponent * scalar;
+    }
+
+    public void makeUnitVector() {
+        double length = this.getLength();
+        this.xComponent = this.xComponent / length;
+        this.yComponent = this.yComponent / length;
+    }
+
 }

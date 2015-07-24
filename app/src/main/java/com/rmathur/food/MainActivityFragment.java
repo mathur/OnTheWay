@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -36,10 +37,11 @@ public class MainActivityFragment extends Fragment {
     EditText edtQuery, edtFrom, edtTo, edtDistance;
     Button btnGo;
 
+    Map<String, Venue> venueHashMap = new HashMap<String, Venue>();
+
     public static final String BASE_GOOGLE_URL = "https://maps.googleapis.com";
     public static final String BASE_FOURSQUARE_URL = "https://api.foursquare.com";
     public final long DEGREES_TO_METERS = 111319;
-    public HashMap<String, Venue> venueHashMap = new HashMap<String, Venue>();
 
     public MainActivityFragment() {
     }
@@ -64,19 +66,14 @@ public class MainActivityFragment extends Fragment {
                 final String to = edtTo.getText().toString();
                 final double distance = Double.parseDouble(edtDistance.getText().toString());
 
-                venueHashMap = new HashMap<String, Venue>();
-
                 RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(BASE_GOOGLE_URL).build();
                 GoogleDirectionsAPI apiService = restAdapter.create(GoogleDirectionsAPI.class);
                 apiService.getDirections(getString(R.string.googleApiKey), from, to, new Callback<Route>(){
                     @Override
                     public void success(Route route, Response response) {
-                        for (Location loc : calculatePoints(route, distance)) {
-                            getPlaceList(loc, query, distance);
-                        }
-
-                        for (String address : venueHashMap.keySet()) {
-                            Log.e("Venue", venueHashMap.get(address).getName());
+                        List<Location> locationList = calculatePoints(route, distance);
+                        for (int i = 0; i < locationList.size(); i++) {
+                            getPlaceList(locationList.get(i), query, distance);
                         }
                     }
 
