@@ -1,8 +1,10 @@
 package com.rmathur.food;
 
 import android.location.Location;
+import android.os.DropBoxManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,7 +106,7 @@ public class MainActivityFragment extends Fragment {
 
                     if(currStep.getDistance().getValue() > distance) {
                         Vector step = new Vector(Math.abs(startLoc.getLatitude() - endLoc.getLatitude()), Math.abs(startLoc.getLongitude() - endLoc.getLongitude()));
-                        Vector unitVector = new Vector((step.xComponent / step.getDistance()), (step.yComponent / step.getDistance()));
+                        Vector unitVector = new Vector((step.xComponent / step.getLength()), (step.yComponent / step.getLength()));
 
                         double distanceRemaining = currStep.getDistance().getValue();
                         Location currLoc = startLoc;
@@ -142,6 +144,8 @@ public class MainActivityFragment extends Fragment {
                         venueHashMap.put(venue.getLocation().getAddress(), venue);
                     }
                 }
+
+
             }
 
             @Override
